@@ -1,0 +1,51 @@
+AI Lab 2: Intelligent Agents & the PEAS Framework | Mohammed Emad ALaini
+Python 3.11.6, standard library only
+
+========================================================================
+LAB 2 / Section 2.5  lab2_percepts.py  (supplied reflex agent)
+========================================================================
+1 (29, True) target mode COOL
+2 (29, True) target mode COOL
+3 (20, True) target mode IDLE
+4 (26, True) target mode IDLE
+5 (19, True) target mode WARM
+6 (29, False) target mode ECO
+Expected (manual): COOL, COOL, IDLE, IDLE, WARM, ECO
+Matches manual: True
+Note: the reflex agent returns COOL at steps 1 and 2. It has no memory, so it would
+re-send the same COOL command although cooling was already requested.
+
+========================================================================
+LAB 2 / Task 3  lab2_model.py + lab2_check.py  (stateful agent)
+========================================================================
+Required scenario (repeated percepts, both boundaries, transition, empty room):
+step | previous mode | percept (temp C, occupied) | target | command | check | scenario
+1 | - | (29, True) | COOL | SEND | PASS | first percept, hot and occupied
+2 | COOL | (29, True) | COOL | no command | PASS | repeated percept
+3 | COOL | (26, True) | IDLE | SEND | PASS | exact upper boundary 26 C (not > 26); transition COOL->IDLE
+4 | IDLE | (20, True) | IDLE | no command | PASS | exact lower boundary 20 C (not < 20); same mode
+5 | IDLE | (19, True) | WARM | SEND | PASS | mode transition IDLE->WARM
+6 | WARM | (19, False) | ECO | SEND | PASS | empty room: occupancy priority over cold reading
+7 | ECO | (29, False) | ECO | no command | PASS | empty room again, hot: still ECO, no repeat
+8 | ECO | (24, True) | IDLE | SEND | PASS | room re-occupied, comfortable
+Checks passed: 8/8
+
+Reflex vs stateful on the manual's supplied percept list:
+step | percept | reflex target | reflex sends | stateful previous | stateful target | stateful command
+1 | (29, True) | COOL | SEND | - | COOL | SEND
+2 | (29, True) | COOL | SEND | COOL | COOL | no command
+3 | (20, True) | IDLE | SEND | COOL | IDLE | SEND
+4 | (26, True) | IDLE | SEND | IDLE | IDLE | no command
+5 | (19, True) | WARM | SEND | IDLE | WARM | SEND
+6 | (29, False) | ECO | SEND | WARM | ECO | SEND
+Commands sent: reflex 6, stateful 4 (targets identical at every step).
+
+Noisy sequence around 26 C (Section 2.7): memory alone is not hysteresis
+step | previous mode | percept | target | command
+1 | - | (26.4, True) | COOL | SEND
+2 | COOL | (25.8, True) | IDLE | SEND
+3 | IDLE | (26.2, True) | COOL | SEND
+4 | COOL | (25.9, True) | IDLE | SEND
+5 | IDLE | (26.1, True) | COOL | SEND
+6 | COOL | (26.3, True) | COOL | no command
+Commands sent: 5 of 6 steps; the mode flips every time the reading crosses 26 C.
